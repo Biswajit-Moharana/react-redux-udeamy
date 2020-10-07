@@ -41,7 +41,7 @@ const PostItem = ({ auth, addLike, removeLike, deletePost,
                         <span className='comment-count'>{comments.length}</span>
                     )}
                 </Link>
-                {!auth.loading && user !== auth.user._id && (
+                {!auth.loading && user === auth.user._id && (
                     <button onClick={() => deletePost(_id)} type="button" className="btn btn-danger">
                         <i className="fas fa-times"></i>
                     </button>

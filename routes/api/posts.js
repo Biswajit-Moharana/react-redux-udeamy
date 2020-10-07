@@ -25,7 +25,7 @@ router.post('/', [auth, [
             text: req.body.text,
             name: user.name,
             avatar: user.avatar,
-            user: req.body.id
+            user: req.user.id
         });
 
         const post = await newPost.save();
@@ -156,7 +156,7 @@ router.put('/unlike/:id', auth, async (req, res) => {
 //@route    Post api/posts/comment/:id
 //@desc     Comment on a post
 //@access   Private
-router.post('/', [auth, [
+router.post('/comment/:id', [auth, [
     check('text', 'Text is required').not().isEmpty()
 ]], async (req, res) => {
     const errors = validationResult(req);
@@ -165,20 +165,24 @@ router.post('/', [auth, [
     }
 
     try {
+        console.log('user',req.user.id);
+        console.log('params',req.params.id);
         const user = User.findById(req.user.id).select('-password');
         const post = Post.findById(req.params.id);
+
 
         const newComment = {
             text: req.body.text,
             name: user.name,
             avatar: user.avatar,
-            user: req.body.id
+            user: req.user.id
         };
-        post.comment.unshift(newComment);
+        console.log(post.comments);
+        post.comments.unshift(newComment);
 
         await post.save();
 
-        res.json(post.comment);
+        res.json(post.comments);
     } catch (err) {
         console.log(err.message);
         return res.status(500).send('server error');
@@ -204,19 +208,19 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
 
         //check user
 
-        if(comment.user.toString() !== req.user.id){
+        if (comment.user.toString() !== req.user.id) {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
-         //Get remove index
-         const removeIndex = post.comments.map(comment => comment.user.toString()).indexOf(req.user.id);
+        //Get remove index
+        const removeIndex = post.comments.map(comment => comment.user.toString()).indexOf(req.user.id);
 
-         post.comments.splice(removeIndex, 1);
- 
- 
-         await post.save();
- 
-         res.json(post.comments);
+        post.comments.splice(removeIndex, 1);
+
+
+        await post.save();
+
+        res.json(post.comments);
     } catch (err) {
         console.log(err.message);
         return res.status(500).send('server error');
